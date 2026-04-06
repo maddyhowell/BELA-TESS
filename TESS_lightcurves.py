@@ -323,16 +323,6 @@ def CorrectReggression(tpf, aperture_mask, sector, pca_comps=7, verbose = True):
     return lc_final
 
 def detect_momentum_dump_segments(lc_final, deriv_thresh=8, expand_points=50, window=25, var_thresh=3):
-    """
-    From ChatGPT, key input parameters:
-        deriv_thresh (≈ 4–7)
-        → sensitivity to jumps
-        expand_points (≈ 30–100)
-        → how long the momentum dump lasts
-        (depends on cadence: for 2-min TESS, 50 ≈ ~1.5 hours)
-        var_thresh (≈ 2–4)
-        → how noisy the post-dump region must be
-    """
 
     time, flux = lc_final.time.value, lc_final.flux.value
 

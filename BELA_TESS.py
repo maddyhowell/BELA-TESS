@@ -250,8 +250,11 @@ class TPFMaskSelector:
         if np.any(self.pixel_mask):
             self.ax_psd.cla()
 
-            self.psd = TESS_LC.calc_PSD(self.lc, method = 'original', oversample=1, min_freq=1)
-            pssm = TESS_LC.ps_smooth(self.psd.frequency.value, self.psd.power.value, self.numax_guess, 'Yu18', 2)
+            self.psd = TESS_LC.calc_PSD(self.lc, method = 'original', oversample=1, min_freq=0.01)
+            try:
+                pssm = TESS_LC.ps_smooth(self.psd.frequency.value, self.psd.power.value, self.numax_guess, 'Yu18', 2)
+            except:
+                pssm = np.full(np.shape(self.psd.frequency.value), np.nan)
 
 
             self.psd.plot(ax=self.ax_psd, c = 'k')
@@ -286,7 +289,7 @@ class TPFMaskSelector:
         return self.pixel_mask
 
 class FinalLCSelector:
-    def __init__(self, lc_files, numax_guess):
+    def __init__(self, lc_files, numax_guess, star_id):
 
         #### Initialize input parameters --------------------------
         self.numax_guess = numax_guess
@@ -296,6 +299,7 @@ class FinalLCSelector:
         self.psd_all = None
         self.sector_times = None
         self.removed_sectors = set()
+        self.star_id = star_id
 
         self.test_parameter = None
 
@@ -316,6 +320,8 @@ class FinalLCSelector:
 
         self.ax_lc = self.fig.add_subplot(gs[0, 0])
         self.ax_psd = self.fig.add_subplot(gs[0, 1])
+
+        self.fig.suptitle(f'TIC {self.star_id} Full Light Curve')
 
 
         self.update_lightcurve()

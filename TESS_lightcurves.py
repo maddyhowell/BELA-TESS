@@ -12,7 +12,6 @@ import matplotlib.pyplot as plt
 from astroquery.vizier import Vizier
 import warnings
 from lightkurve import periodogram
-from pyMON import dnu_relations as dr
 from matplotlib import patches
 from scipy.ndimage import binary_dilation
 from scipy.ndimage import uniform_filter1d
@@ -323,6 +322,16 @@ def CorrectReggression(tpf, aperture_mask, sector, pca_comps=7, verbose = True):
     return lc_final
 
 def detect_momentum_dump_segments(lc_final, deriv_thresh=8, expand_points=50, window=25, var_thresh=3):
+    """
+    From ChatGPT, key input parameters:
+        deriv_thresh (≈ 4–7)
+        → sensitivity to jumps
+        expand_points (≈ 30–100)
+        → how long the momentum dump lasts
+        (depends on cadence: for 2-min TESS, 50 ≈ ~1.5 hours)
+        var_thresh (≈ 2–4)
+        → how noisy the post-dump region must be
+    """
 
     time, flux = lc_final.time.value, lc_final.flux.value
 
@@ -483,13 +492,24 @@ def HighPassFilter(lc, highpass_filter, method):
 
     return lc_final
 
+def Find_Dnu_relations(keyword):
+
+    Dnu_relations = {'GC_RGB': [0.3,0.75],
+                     'GC_RHB': [0.3, 0.86],
+                     'GC_AGB': [0.3, 0.77],
+                     'Yu18': [0.267, 0.764],
+                     }
+
+    return Dnu_relations[keyword]
+
+
 def ps_smooth(frequency, power, numax_est, Dnu_relation, sm):
     """ This function should be executed after ps_no_slope """
 
     if type(Dnu_relation) == str:
         ## go to file and find Dnu_relation coefficient and exponent
 
-        dnu_coefficient, dnu_exponent = dr.Find_Dnu_relations(Dnu_relation)
+        dnu_coefficient, dnu_exponent = Find_Dnu_relations(Dnu_relation)
 
     else:
         dnu_coefficient, dnu_exponent = Dnu_relation
@@ -633,7 +653,7 @@ def PSD_fixedfreqgrid(lc,  minimum_frequency, maximum_frequency, cadence, oversa
 
     return psd
 
-def calc_PSD(lc, method = 'original', min_freq = 1, max_freq = 277.78, oversample = 1, cadence = 30):
+def calc_PSD(lc, method = 'original', min_freq = 1, max_freq = 277.78, oversample = 5, cadence = 30):
     """ methods to calculate the power spectral density:
     'original': uses the frequency resolution defined by the baseline in the inputted light curve
     'setfreqres': Defines the frequency resolution on the number of data points in the light curve (e.g. if there is several large gaps)

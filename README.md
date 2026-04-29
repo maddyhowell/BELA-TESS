@@ -11,6 +11,14 @@ BELA-TESS also provides an interactive widget for tests of the stitching of the 
 
 https://github.com/user-attachments/assets/23f2f14c-40cf-40cb-91ea-a914703deb1d
 
+Required python packages:
+* numpy
+* scipy
+* astropy
+* lightkurve
+* matplotlib
+* pandas
+* astroquery
 
 This code is still under-developement. The following is a list of proposed additions. If you have any suggestions, please contact Maddy Howell (Howell.753@osu.edu)
 TODO:

@@ -25,3 +25,4 @@ TODO:
 * Citation to paper
 * Add in SNR comparison in the FFI widget
 * Add another widget to compare power spectrum when masking out part of light curve
+* Add in a parameter to bin light curve to different cadences

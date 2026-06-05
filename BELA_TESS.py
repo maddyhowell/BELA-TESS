@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import TESS_lightcurves as TESS_LC
 from matplotlib import gridspec
 from matplotlib.widgets import RectangleSelector
-from astropy.visualization import   PercentileInterval
+from astropy.visualization import PercentileInterval
 import os
 import file_to_lk as f2lk
 import lightkurve as lk
@@ -226,8 +226,8 @@ class TPFMaskSelector:
                 self.ax_lc.legend(loc = 'lower left')
 
             else:
-                self.ax_lc.plot(self.prevprev_lc.time.value, self.prevprev_lc.flux.value, c = 'b', alpha = 0.1, label = 'Last option')
-                self.ax_lc.plot(self.prev_lc.time.value, self.prev_lc.flux.value, c = 'r', alpha = 0.1, label = 'Two option previous')
+                self.ax_lc.plot(self.prevprev_lc.time.value, self.prevprev_lc.flux.value, c = 'b', alpha = 0.1, label = 'Two option previous')
+                self.ax_lc.plot(self.prev_lc.time.value, self.prev_lc.flux.value, c = 'r', alpha = 0.1, label = 'Last option')
 
 
                 self.ax_lc.legend(loc = 'lower left')
@@ -250,7 +250,7 @@ class TPFMaskSelector:
         if np.any(self.pixel_mask):
             self.ax_psd.cla()
 
-            self.psd = TESS_LC.calc_PSD(self.lc, method = 'original', oversample=1, min_freq=0.01)
+            self.psd = TESS_LC.calc_PSD(self.lc, method = 'original', oversample=5, min_freq=0.01)
             try:
                 pssm = TESS_LC.ps_smooth(self.psd.frequency.value, self.psd.power.value, self.numax_guess, 'Yu18', 2)
             except:
@@ -424,7 +424,7 @@ class FinalLCSelector:
     def update_powerspectra(self):
         self.ax_psd.clear()
 
-        self.psd_all = TESS_LC.calc_PSD(self.lc_all, method = 'setfreqres', oversample=1, min_freq=0.01)
+        self.psd_all = TESS_LC.calc_PSD(self.lc_all, method = 'setfreqres', oversample=5, min_freq=0.01)
         pssm = TESS_LC.ps_smooth(self.psd_all.frequency.value, self.psd_all.power.value, self.numax_guess, 'Yu18', 2)
 
         self.psd_all.plot(ax=self.ax_psd, c = 'k')

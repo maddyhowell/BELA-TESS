@@ -184,10 +184,7 @@ class TPFMaskSelector:
 
                         continue
                 else:
-                    scale_fac = self.gmag/row.Gmag
-                    # print(scale_fac)
-                    # fac = 150 - 250*(1- scale_fac)
-                    fac = 40 - 200*(1- scale_fac)
+                    fac=64.0 / 2 ** (g_mag / 5.0)
 
                     if fac < 0:
                         fac = 1

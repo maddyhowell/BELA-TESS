@@ -185,7 +185,7 @@ class TPFMaskSelector:
                         continue
                 else:
 
-                    fac=64.0 / 2 ** (self.gmag / 5.0)
+                    fac = 64.0 / 2 ** (row.Gmag / 5.0) * 2**(self.gmag/5)
 
                     if fac < 0:
                         fac = 1

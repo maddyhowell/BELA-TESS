@@ -8,6 +8,7 @@ from astropy.visualization import PercentileInterval
 import os
 import file_to_lk as f2lk
 import lightkurve as lk
+from scipy.signal import find_peaks
 
 def FinaliseSectorLightCurve(tpf, ap_mask, sector, numax_guess):
     #### Step 1: Do background correction with regression corrector
@@ -40,6 +41,32 @@ def FinaliseSectorLightCurve(tpf, ap_mask, sector, numax_guess):
 
     return lc_final
 
+def calc_SNR(psd, pssm, numax_guess):
+    numax_sun = 3090.00
+    width_sun = 1300.0
+
+    #Get power excess mask
+    width = width_sun*(numax_guess/numax_sun)
+    ps_bounds = [numax_guess-(width), numax_guess+(width)]
+    mask = np.ma.getmask(np.ma.masked_inside(psd.frequency.value, ps_bounds[0], ps_bounds[1]))
+    pssm_masked = pssm[mask]
+
+    nu_coords = [np.log10(ps_bounds[0]), np.log10(ps_bounds[1])]
+    pwr_coords = [np.log10(pssm[0]), np.log10(pssm[len(pssm)-1])]
+    m, b = np.polyfit(nu_coords, pwr_coords, 1)
+
+    linbg = np.zeros(len(psd.frequency.value))
+    for i in range(len(psd.frequency.value)):
+        linbg[i] = 10.0**(m*np.log10(psd.frequency.value[i]) + b)
+
+    psd_bgcorr = psd.power.value/linbg
+
+    peaks, _ = find_peaks(psd_bgcorr[mask])
+    peak_SNR_idx = np.argmax(psd_bgcorr[mask][peaks])
+    SNR = psd_bgcorr[mask][peaks][peak_SNR_idx]
+
+    return SNR
+
 class TPFMaskSelector:
     def __init__(self, star_id, tpf, ra, dec, pmra, pmdec, gmag, gaia_id, numax_guess, frame=0, sector = None):
         """
@@ -57,6 +84,7 @@ class TPFMaskSelector:
         self.tpf = tpf
         self.lc = None
         self.psd = None
+        self.SNR = None
 
         self.prev_lc = []
         self.prevprev_lc = []
@@ -244,6 +272,8 @@ class TPFMaskSelector:
 
         return self.lc
 
+
+
     def update_powerspectra(self):
         """
         Compute spectra from current mask and light curve, and update plot.
@@ -253,6 +283,7 @@ class TPFMaskSelector:
             self.ax_psd.cla()
 
             self.psd = TESS_LC.calc_PSD(self.lc, method = 'original', oversample=5, min_freq=0.01)
+            # psd_copy = self.psd.copy()
             try:
                 pssm = TESS_LC.ps_smooth(self.psd.frequency.value, self.psd.power.value, self.numax_guess, 'Yu18', 2)
             except:
@@ -265,7 +296,22 @@ class TPFMaskSelector:
             self.ax_psd.axvline(self.numax_guess, c = 'r', ls = 'dashed', alpha = 0.5)
             self.ax_psd.set_xscale('log'), self.ax_psd.set_yscale('log')
 
-            ### Plot last two previous power spectra
+
+            # display a SNR metric on the Figure ------------------------------
+            SNR = calc_SNR(self.psd, pssm, self.numax_guess)
+
+            self.ax_psd.text(
+                            0.02, 0.02,
+                            f'Max SNR = {round(SNR,2)}',
+                            transform=self.ax_psd.transAxes,
+                            ha='left',
+                            va='bottom',
+                            fontsize = 15
+                        )
+
+
+
+            ### Plot last two previous power spectra ---------------------------
             if self.prev_psd == []:
                 pass
             elif self.prevprev_psd == []:
@@ -275,13 +321,13 @@ class TPFMaskSelector:
                 self.ax_psd.plot(self.prev_psd.frequency.value, self.prev_psd.power.value, c = 'r', alpha = 0.1)
 
 
-
             ### Save last two previous power spectra
             self.prevprev_psd = self.prev_psd.copy()
             self.prev_psd = self.psd.copy()
 
             self.ax_psd.relim()
             self.ax_psd.autoscale_view()
+
 
 
         return self.psd
@@ -444,11 +490,26 @@ class FinalLCSelector:
         self.psd_all = TESS_LC.calc_PSD(self.lc_all, method = 'setfreqres', oversample=5, min_freq=0.01)
         pssm = TESS_LC.ps_smooth(self.psd_all.frequency.value, self.psd_all.power.value, self.numax_guess, 'Yu18', 2)
 
+
+
         self.psd_all.plot(ax=self.ax_psd, c = 'k')
         self.ax_psd.plot(self.psd_all.frequency.value, pssm, lw = 3, c = 'mediumpurple')
         self.ax_psd.set_xlim(1,200)
         self.ax_psd.set_yscale('log'), self.ax_psd.set_xscale('log')
         self.ax_psd.axvline(self.numax_guess, c = 'r', ls = 'dashed', alpha = 0.5)
+
+        # display a SNR metric on the Figure ------------------------------
+        SNR = calc_SNR(self.psd_all, pssm, self.numax_guess)
+
+        self.ax_psd.text(
+                        0.02, 0.02,
+                        f'Max SNR = {round(SNR,2)}',
+                        transform=self.ax_psd.transAxes,
+                        ha='left',
+                        va='bottom',
+                        fontsize = 15
+                    )
+
 
         return self.psd_all
 

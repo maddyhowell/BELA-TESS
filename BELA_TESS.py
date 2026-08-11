@@ -41,7 +41,7 @@ def FinaliseSectorLightCurve(tpf, ap_mask, sector, numax_guess):
     return lc_final
 
 class TPFMaskSelector:
-    def __init__(self, star_id, tpf, ra, dec, pmra, pmdec, gmag, gaia_id, numax_guess, frame=0):
+    def __init__(self, star_id, tpf, ra, dec, pmra, pmdec, gmag, gaia_id, numax_guess, frame=0, sector = None):
         """
         Interactive TPF mask selector and time mask for light curve, with live light curve and power spectra update.
         """
@@ -99,7 +99,11 @@ class TPFMaskSelector:
         #### Plot nearby sources surrounding target
         self.NearbySources()
 
-        self.sector = self.tpf.hdu[0].header['sector']
+        if sector != None:
+            self.sector = sector
+        else:
+            self.sector = self.tpf.hdu[0].header['sector']
+
         self.fig.suptitle(f'TIC {self.star_id} - Sector {self.sector} Photometric Analysis')
 
         # Connect click event
@@ -384,13 +388,28 @@ class FinalLCSelector:
         dt = 50  # in days. pad the xlims
         self.ax_lc.set_xlim(xmin_default-dt, xmax_default+dt)
 
+        flag_sectortitle = False   # for sector titles on light curve
         for idx,sec in self.sector_times.iterrows():
             self.ax_lc.axvline(sec.start_time, ls = 'dashed', c = 'r', alpha = 0.5)
 
 
             if int(sec.Sector) in self.sector_list:
+
+                if int(sec['Sector']) - 1 in self.sector_list and int(sec['Sector']) + 1 in self.sector_list and flag_sectortitle == False:
+                    label = str(int(sec['Sector'])) + '\n'
+                    flag_sectortitle = True
+                else:
+                    label = str(int(sec['Sector']))
+                    flag_sectortitle = False
+
+                # if flag_sectortitle:
+                #     label = str(int(sec['Sector'])) + '\n'
+                #     flag_number = False
+                # else:
+                #     label = str(int(sec['Sector']))
+                #     flag_number = True
+
                 x = sec['mid_time']
-                label = str(int(sec['Sector']))
 
                 txt = self.ax_lc.text(
                     x, 1.02, label,

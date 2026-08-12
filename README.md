@@ -26,9 +26,6 @@ You can query MAST for TESS cutouts using the lightkurve python package.
 
 To stitch light curves together, BELA-TESS requires an array of light curve objects, the TIC ID and estimate for $\nu_{\rm max}$
 
-# needed for smoothing. Can come from a spectroscopic logg and teff
-numax_predicted = 31
-
 ## Example Jupyter Notebook
 An example tutorial is provided for red giant star TIC 461599427 (same star as in the provided videos). This tutorial provides a working example of the required inputs for each module in BELA-TESS, that can be copied and applied to different stars observered by TESS.
 

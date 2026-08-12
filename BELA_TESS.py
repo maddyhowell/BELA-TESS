@@ -68,7 +68,8 @@ def calc_SNR(psd, pssm, numax_guess):
     return SNR
 
 class TPFMaskSelector:
-    def __init__(self, star_id, tpf, ra, dec, pmra, pmdec, gmag, gaia_id, numax_guess, frame=0, sector = None):
+    def __init__(self, star_id, tpf, ra, dec, pmra, pmdec, gmag, gaia_id, numax_guess, frame=0, sector = None, figsize = (11, 5.75)): 
+
         """
         Interactive TPF mask selector and time mask for light curve, with live light curve and power spectra update.
         """
@@ -105,12 +106,13 @@ class TPFMaskSelector:
         #### Initialize figure with 3 subplots: image and light curve and power spectra -------------------------------------
         plt.close('all')
 
-        self.fig = plt.figure(figsize=(20, 5))
-        gs = gridspec.GridSpec(1, 3, figure=self.fig, width_ratios=[1, 2, 2], height_ratios=[1], wspace = 0.2)
+        self.fig = plt.figure(figsize=figsize) 
+        gs = gridspec.GridSpec(2, 2, figure=self.fig, width_ratios=[1.25, 2.5], height_ratios=[1, 1], wspace = 0.2, hspace = 0.57, left = 0.07, right = 0.94) 
 
-        self.ax_img = self.fig.add_subplot(gs[0, 0])
-        self.ax_lc = self.fig.add_subplot(gs[0, 1])
-        self.ax_psd = self.fig.add_subplot(gs[0, 2])
+        self.ax_img = self.fig.add_subplot(gs[:, 0]) 
+        self.ax_lc = self.fig.add_subplot(gs[0, 1]) 
+        self.ax_psd = self.fig.add_subplot(gs[1, 1]) 
+
 
         #### Figure position **kwargs -------------------------------------
 
@@ -118,8 +120,9 @@ class TPFMaskSelector:
         pos1 = self.ax_lc.get_position()
         pos2 = self.ax_psd.get_position()
 
-        self.ax_lc.set_position([pos1.x0 + 0.03, pos1.y0, pos1.width, pos1.height])  # bigger shift
-        self.ax_psd.set_position([pos2.x0 + 0.04, pos2.y0, pos2.width, pos2.height])  # smaller shift
+
+        self.ax_lc.set_position([pos1.x0 + 0.02, pos1.y0+0.05, pos1.width, pos1.height])  
+        self.ax_psd.set_position([pos2.x0 + 0.13, pos2.y0, pos2.width*0.57, pos2.height+0.12])  
 
         #### Plot TPF image -------------------------------------
         self.PlotTPF()
@@ -132,7 +135,7 @@ class TPFMaskSelector:
         else:
             self.sector = self.tpf.hdu[0].header['sector']
 
-        self.fig.suptitle(f'TIC {self.star_id} - Sector {self.sector} Photometric Analysis')
+        self.fig.suptitle(f'TIC {self.star_id} - Sector {self.sector} Photometric Analysis', fontweight='semibold')
 
         # Connect click event
         self.fig.canvas.mpl_connect('button_press_event', self.onclick)
@@ -337,7 +340,7 @@ class TPFMaskSelector:
         return self.pixel_mask
 
 class FinalLCSelector:
-    def __init__(self, lc_files, numax_guess, star_id):
+    def __init__(self, lc_files, numax_guess, star_id, figsize = (11.5, 4.3)): 
 
         #### Initialize input parameters --------------------------
         self.numax_guess = numax_guess
@@ -363,13 +366,13 @@ class FinalLCSelector:
 
         #### Create Figure  --------------------------
         plt.close('all')
-        self.fig = plt.figure(figsize=(20, 5))
-        gs = gridspec.GridSpec(1, 2, figure=self.fig, width_ratios=[5,2], height_ratios=[1], wspace = 0.2)
+        self.fig = plt.figure(figsize=figsize) 
+        gs = gridspec.GridSpec(1, 2, figure=self.fig, width_ratios=[4.5,2], height_ratios=[1], wspace = 0.2, left = 0.085, right = 0.98, bottom = 0.15) 
 
         self.ax_lc = self.fig.add_subplot(gs[0, 0])
         self.ax_psd = self.fig.add_subplot(gs[0, 1])
 
-        self.fig.suptitle(f'TIC {self.star_id} Full Light Curve')
+        self.fig.suptitle(f'TIC {self.star_id} Full Light Curve', fontweight='semibold')
 
 
         self.update_lightcurve()
@@ -441,12 +444,12 @@ class FinalLCSelector:
 
             if int(sec.Sector) in self.sector_list:
 
-                if int(sec['Sector']) - 1 in self.sector_list and int(sec['Sector']) + 1 in self.sector_list and flag_sectortitle == False:
-                    label = str(int(sec['Sector'])) + '\n'
-                    flag_sectortitle = True
-                else:
-                    label = str(int(sec['Sector']))
-                    flag_sectortitle = False
+                # if int(sec['Sector']) - 1 in self.sector_list and int(sec['Sector']) + 1 in self.sector_list and flag_sectortitle == False:
+                #    label = str(int(sec['Sector'])) + '\n'
+                #    flag_sectortitle = True
+                # else:
+                #    label = str(int(sec['Sector']))
+                #    flag_sectortitle = False
 
                 # if flag_sectortitle:
                 #     label = str(int(sec['Sector'])) + '\n'
@@ -454,7 +457,18 @@ class FinalLCSelector:
                 # else:
                 #     label = str(int(sec['Sector']))
                 #     flag_number = True
+                
+                if int(sec['Sector']) - 1 not in self.sector_list:  
+                    flag_sectortitle = False  
+                    
+                if flag_sectortitle: 
+                    label = str(int(sec['Sector'])) + '\n' 
+                    flag_sectortitle = False  
+                else:  
+                    label = str(int(sec['Sector']))  
+                    flag_sectortitle = True  
 
+                
                 x = sec['mid_time']
 
                 txt = self.ax_lc.text(

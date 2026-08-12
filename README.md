@@ -3,17 +3,18 @@
 
 For smaller TESS candidate samples, it is recommended that you use a boutique method to construct light curves for each target rather than adopting pipeline generated products. Specifically, the aperture masks for each star should be individualised, as there is a higher potential of photometric contamination from neighbouring stars with large pixel scale of the TESS instrument. 
 
-The BELA-TESS python package allows provides an interactive widget to test different alternative aperture masks, and simultaneously compare the resultant light curves. This pipeline also detrends the light curves that is optimised for asteroseismology, following the method in Howell et al. 2026. A python notebook tutorial is provided to step through the usage of this package. A video showing an example of the intereactive widget is shown here:
+The BELA-TESS python package allows provides an interactive widget to test different alternative aperture masks, and simultaneously compare the resultant light curves. This pipeline also detrends the light curves that is optimised for asteroseismology, following the method in Howell et al. 2026. A video showcasing an example of the intereactive widget is shown here:
 
 https://github.com/user-attachments/assets/dd0197d0-0b16-41c6-8678-c19fa4a8fe2b
 
 
-
 BELA-TESS also provides an interactive widget for tests of the stitching of the sector light curves. Some sectors might show anomolous noise that could impact the oscillation frequencies in the power spectrum. This widget allows for you to test if removing certain sectors improves the final power spectrum. Again, example usage is provided in the python notebook tutorial, and a video example shown below:
 
-https://github.com/user-attachments/assets/23f2f14c-40cf-40cb-91ea-a914703deb1d
+https://github.com/user-attachments/assets/9dde4fb3-e554-4191-8ffd-0dddcd25a9f0
 
-Required python packages:
+## Example Jupyter Notebook
+
+## Required python packages:
 * numpy
 * scipy
 * astropy
@@ -22,9 +23,26 @@ Required python packages:
 * pandas
 * astroquery
 
-This code is still under-developement. The following is a list of proposed additions. If you have any suggestions, please contact Maddy Howell (Howell.753@osu.edu)
-TODO:
-* Citation to paper
-* Add in SNR comparison in the FFI widget
-* Add another widget to compare power spectrum when masking out part of light curve
-* Add in a parameter to bin light curve to different cadences
+## Citing
+If you use `BELA-TESS`, please include the following citation [Howell et al., 2026](https://ui.adsabs.harvard.edu/abs/2026arXiv260427828H/abstract)
+```tex
+@ARTICLE{Howell-2026,
+       author = {{Howell}, Madeline and {Johnson}, Jennifer A. and {Pinsonneault}, Marc H. and {Morales}, Leslie M. and {Tayar}, Jamie and {Roberts}, John D. and {Stello}, Dennis and {McKenzie}, Madeleine},
+        title = "{TESS Asteroseismology of Red Giants in the Old Metal-Rich Open Clusters NGC 188 \& NGC 6791}",
+      journal = {arXiv e-prints},
+     keywords = {Solar and Stellar Astrophysics, Astrophysics of Galaxies},
+         year = 2026,
+        month = apr,
+          eid = {arXiv:2604.27828},
+        pages = {arXiv:2604.27828},
+          doi = {10.48550/arXiv.2604.27828},
+archivePrefix = {arXiv},
+       eprint = {2604.27828},
+ primaryClass = {astro-ph.SR},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2026arXiv260427828H},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+```
+
+## Developement
+This code is still actively under-developement. If you have any suggestions, please contact Maddy Howell (Howell.753@osu.edu)

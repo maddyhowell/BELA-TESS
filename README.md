@@ -12,7 +12,25 @@ BELA-TESS also provides an interactive widget for tests of the stitching of the 
 
 https://github.com/user-attachments/assets/9dde4fb3-e554-4191-8ffd-0dddcd25a9f0
 
+## Usage
+BELA-TESS requires the following inputs to create aperture masks for each sector:
+* TIC ID
+* Gaia ID
+* Gmag
+* (RA, Dec)
+* (pmra, pmdec)
+* estimate for $\nu_{\rm max}$
+* TESS cutout (target pixel file) centred on target star
+
+You can query MAST for TESS cutouts using the lightkurve python package. 
+
+To stitch light curves together, BELA-TESS requires an array of light curve objects, the TIC ID and estimate for $\nu_{\rm max}$
+
+# needed for smoothing. Can come from a spectroscopic logg and teff
+numax_predicted = 31
+
 ## Example Jupyter Notebook
+An example tutorial is provided for red giant star TIC 461599427 (same star as in the provided videos). This tutorial provides a working example of the required inputs for each module in BELA-TESS, that can be copied and applied to different stars observered by TESS.
 
 ## Required python packages:
 * numpy
@@ -44,5 +62,5 @@ archivePrefix = {arXiv},
 }
 ```
 
-## Developement
-This code is still actively under-developement. If you have any suggestions, please contact Maddy Howell (Howell.753@osu.edu)
+## Development
+This code is still actively under-development. If you have any suggestions, please contact Maddy Howell (Howell.753@osu.edu)

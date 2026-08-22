@@ -10,28 +10,28 @@ import file_to_lk as f2lk
 import lightkurve as lk
 from scipy.signal import find_peaks
 
-def FinaliseSectorLightCurve(tpf, ap_mask, sector, numax_guess, bin_cadence_sec = 1800):  #SM change
+def FinaliseSectorLightCurve(tpf, ap_mask, sector, numax_guess, bin_cadence_sec = 1800):  
     #### Step 1: Do background correction with regression corrector
     lc_RC = TESS_LC.CorrectReggression(tpf, ap_mask, sector, pca_comps = 7, verbose = False)
 
     cadence = tpf.hdu[1].header['EXPOSURE']*(24*60*60)  # cadence in seconds (originally in days in header)
 
 
-    #### Step 2: bin data to bin_cadence_sec if using varying sampled data  #SM change
-    if cadence > 1420:  # assuming some padding, for is for cadences of 30mins
-        # print(f'Sector {sector} has 30min cadence')
+    #### Step 2: bin data to bin_cadence_sec if using varying sampled data 
+    if cadence > 1420:  # assuming some padding, for is for cadences of 30 mins
+        # print(f'Sector {sector} has 30 min cadence')
 
         ## FILL GAPS HERE
 
         lc_RC = TESS_LC.remove_small_gaps(lc_RC)
 
     else:
-        # print(f'Sector {sector} DOES NOT has 30min cadence')
-        #### bin_cadence_sec is the target cadence in SECONDS. The default of 1800 s   #SM change
-        #### (30 mins) reproduces the original behaviour exactly. Set it to e.g. 600   #SM change
-        #### for 10-min bins. Only sectors > 26 reach this branch.                     #SM change
-        print(f'Binning Sector {sector} light curve to {bin_cadence_sec} s cadence.')  #SM change
-        lc_RC = lc_RC.bin(time_bin_size = bin_cadence_sec/(60*60*24))   # seconds -> days  #SM change
+        # print(f'Sector {sector} DOES NOT have 30min cadence')
+        #### bin_cadence_sec is the target cadence in SECONDS. The default of 1800 s (30 mins)
+        #### Set it to e.g., 600 for 10-min bins
+        #### Only sectors > 26 reach this loop.                 
+        print(f'Binning Sector {sector} light curve to {bin_cadence_sec} s cadence.')  
+        lc_RC = lc_RC.bin(time_bin_size = bin_cadence_sec/(60*60*24))   # seconds -> days  
 
     #### Step 3: Take a high-pass filter, which normalises the light curve
     if numax_guess <= 20:
@@ -72,8 +72,7 @@ def calc_SNR(psd, pssm, numax_guess):
     return SNR
 
 class TPFMaskSelector:
-    ##def __init__(self, star_id, tpf, ra, dec, pmra, pmdec, gmag, gaia_id, numax_guess, frame=0, sector = None):
-    def __init__(self, star_id, tpf, ra, dec, pmra, pmdec, gmag, gaia_id, numax_guess, frame=0, sector = None, figsize = (11, 5.75), bin_cadence_sec = 1800): #SM change
+    def __init__(self, star_id, tpf, ra, dec, pmra, pmdec, gmag, gaia_id, numax_guess, frame=0, sector = None, figsize = (11, 5.75), bin_cadence_sec = 1800):
         """
         Interactive TPF mask selector and time mask for light curve, with live light curve and power spectra update.
         """
@@ -85,7 +84,7 @@ class TPFMaskSelector:
         self.gmag = gmag
         self.gaia_id = gaia_id
         self.numax_guess = numax_guess
-        self.bin_cadence_sec = bin_cadence_sec   # target binning cadence in seconds  #SM change
+        self.bin_cadence_sec = bin_cadence_sec   # target binning cadence in seconds  
 
         self.tpf = tpf
         self.lc = None
@@ -111,16 +110,11 @@ class TPFMaskSelector:
         #### Initialize figure with 3 subplots: image and light curve and power spectra -------------------------------------
         plt.close('all')
 
-        ##self.fig = plt.figure(figsize=(20, 5))
-        self.fig = plt.figure(figsize=figsize) #SM change
-        ##gs = gridspec.GridSpec(1, 3, figure=self.fig, width_ratios=[1, 2, 2], height_ratios=[1], wspace = 0.2)
-        gs = gridspec.GridSpec(2, 2, figure=self.fig, width_ratios=[1.25, 2.5], height_ratios=[1, 1], wspace = 0.2, hspace = 0.57, left = 0.07, right = 0.94) #SM change
-        ##self.ax_img = self.fig.add_subplot(gs[0, 0])
-        ##self.ax_lc = self.fig.add_subplot(gs[0, 1])
-        ##self.ax_psd = self.fig.add_subplot(gs[0, 2])
-        self.ax_img = self.fig.add_subplot(gs[:, 0]) #SM change
-        self.ax_lc = self.fig.add_subplot(gs[0, 1]) #SM change
-        self.ax_psd = self.fig.add_subplot(gs[1, 1]) #SM change
+        self.fig = plt.figure(figsize=figsize) 
+        gs = gridspec.GridSpec(2, 2, figure=self.fig, width_ratios=[1.25, 2.5], height_ratios=[1, 1], wspace = 0.2, hspace = 0.57, left = 0.07, right = 0.94) 
+        self.ax_img = self.fig.add_subplot(gs[:, 0]) 
+        self.ax_lc = self.fig.add_subplot(gs[0, 1]) 
+        self.ax_psd = self.fig.add_subplot(gs[1, 1]) 
 
 
         #### Figure position **kwargs -------------------------------------
@@ -129,11 +123,8 @@ class TPFMaskSelector:
         pos1 = self.ax_lc.get_position()
         pos2 = self.ax_psd.get_position()
 
-        ##self.ax_lc.set_position([pos1.x0 + 0.03, pos1.y0, pos1.width, pos1.height])  # bigger shift
-        ##self.ax_psd.set_position([pos2.x0 + 0.04, pos2.y0, pos2.width, pos2.height])  # smaller shift
-
-        self.ax_lc.set_position([pos1.x0 + 0.02, pos1.y0+0.05, pos1.width, pos1.height])  #SM change
-        self.ax_psd.set_position([pos2.x0 + 0.13, pos2.y0, pos2.width*0.57, pos2.height+0.12])  #SM change
+        self.ax_lc.set_position([pos1.x0 + 0.02, pos1.y0+0.05, pos1.width, pos1.height]) 
+        self.ax_psd.set_position([pos2.x0 + 0.13, pos2.y0, pos2.width*0.57, pos2.height+0.12]) 
         #### Plot TPF image -------------------------------------
         self.PlotTPF()
 
@@ -145,7 +136,7 @@ class TPFMaskSelector:
         else:
             self.sector = self.tpf.hdu[0].header['sector']
 
-        self.fig.suptitle(f'TIC {self.star_id} - Sector {self.sector} Photometric Analysis', fontweight='semibold') #SM change
+        self.fig.suptitle(f'TIC {self.star_id} - Sector {self.sector} Photometric Analysis', fontweight='semibold') 
 
         # Connect click event
         self.fig.canvas.mpl_connect('button_press_event', self.onclick)
@@ -255,8 +246,7 @@ class TPFMaskSelector:
 
             self.ax_lc.cla()
 
-            self.lc = FinaliseSectorLightCurve(self.tpf, self.pixel_mask, self.sector, self.numax_guess, bin_cadence_sec = self.bin_cadence_sec)  #SM change
-
+            self.lc = FinaliseSectorLightCurve(self.tpf, self.pixel_mask, self.sector, self.numax_guess, bin_cadence_sec = self.bin_cadence_sec)  
 
             self.lc.plot(ax=self.ax_lc, c = 'k')
 
@@ -295,13 +285,12 @@ class TPFMaskSelector:
         if np.any(self.pixel_mask):
             self.ax_psd.cla()
 
-            #### calc_PSD's default max_freq (277.78 uHz) is the 30-min Nyquist, so it would  #SM change
-            #### truncate the PSD if the light curve was binned finer. Take the Nyquist from  #SM change
-            #### the light curve's actual sampling: nyquist = 1e6/(2*dt). For 1800 s data     #SM change
-            #### this gives 277.78 uHz, i.e. the original behaviour.                          #SM change
-            dt_sec = np.median(np.diff(self.lc.time.value))*(24*60*60)   # actual sampling in seconds  #SM change
-            nyquist = 0.5*(1/dt_sec)*1e6   # microHz  #SM change
-            self.psd = TESS_LC.calc_PSD(self.lc, method = 'original', oversample=5, min_freq=0.01, max_freq = nyquist)  #SM change
+            #### calc_PSD's default max_freq (277.78 muHz) is the 30 min Nyquist frequency
+            #### Take the Nyquist frequency from the light curve's actual sampling: nyquist = 1e6/(2*dt).
+            #### For 1800 s data, this gives 277.78 muHz
+            dt_sec = np.median(np.diff(self.lc.time.value))*(24*60*60)   # actual sampling in seconds  
+            nyquist = 0.5*(1/dt_sec)*1e6   # microHz 
+            self.psd = TESS_LC.calc_PSD(self.lc, method = 'original', oversample=5, min_freq=0.01, max_freq = nyquist) 
             # psd_copy = self.psd.copy()
             try:
                 pssm = TESS_LC.ps_smooth(self.psd.frequency.value, self.psd.power.value, self.numax_guess, 'Yu18', 2)
@@ -356,11 +345,10 @@ class TPFMaskSelector:
         return self.pixel_mask
 
 class FinalLCSelector:
-    ##def __init__(self, lc_files, numax_guess, star_id):
-    def __init__(self, lc_files, numax_guess, star_id, figsize = (11.5, 4.3), bin_cadence_sec = 1800): #SM change
+    def __init__(self, lc_files, numax_guess, star_id, figsize = (11.5, 4.3), bin_cadence_sec = 1800): 
         #### Initialize input parameters --------------------------
         self.numax_guess = numax_guess
-        self.bin_cadence_sec = bin_cadence_sec   # cadence the .txt light curves were binned to, in seconds  #SM change
+        self.bin_cadence_sec = bin_cadence_sec   # cadence the .txt light curves were binned to, in seconds  
         self.lc_files = np.array(sorted(lc_files))
         self.lc_list = []
         self.sector_list = []
@@ -368,7 +356,7 @@ class FinalLCSelector:
         self.sector_times = None
         self.removed_sectors = set()
         self.star_id = star_id
-        self.cadence_warning_shown = False   # so the mixed cadence warning is only printed once  #SM change
+        self.cadence_warning_shown = False   # so the mixed cadence warning is only printed once 
 
         self.test_parameter = None
 
@@ -384,14 +372,12 @@ class FinalLCSelector:
 
         #### Create Figure  --------------------------
         plt.close('all')
-        ##self.fig = plt.figure(figsize=(20, 5))
-        self.fig = plt.figure(figsize=figsize) #SM change
-        gs = gridspec.GridSpec(1, 2, figure=self.fig, width_ratios=[4.5,2], height_ratios=[1], wspace = 0.2, left = 0.085, right = 0.98, bottom=0.15) #SM change
-
+        self.fig = plt.figure(figsize=figsize) 
+        gs = gridspec.GridSpec(1, 2, figure=self.fig, width_ratios=[4.5,2], height_ratios=[1], wspace = 0.2, left = 0.085, right = 0.98, bottom=0.15) 
         self.ax_lc = self.fig.add_subplot(gs[0, 0])
         self.ax_psd = self.fig.add_subplot(gs[0, 1])
 
-        self.fig.suptitle(f'TIC {self.star_id} Full Light Curve', fontweight='semibold') #SM change
+        self.fig.suptitle(f'TIC {self.star_id} Full Light Curve', fontweight='semibold') 
 
 
         self.update_lightcurve()
@@ -463,29 +449,16 @@ class FinalLCSelector:
 
             if int(sec.Sector) in self.sector_list:
 
-                ##if int(sec['Sector']) - 1 in self.sector_list and int(sec['Sector']) + 1 in self.sector_list and flag_sectortitle == False:
-                ##    label = str(int(sec['Sector'])) + '\n'
-                ##    flag_sectortitle = True
-                ##else:
-                ##    label = str(int(sec['Sector']))
-                ##    flag_sectortitle = False
 
-                # if flag_sectortitle:
-                #     label = str(int(sec['Sector'])) + '\n'
-                #     flag_number = False
-                # else:
-                #     label = str(int(sec['Sector']))
-                #     flag_number = True
+                if int(sec['Sector']) - 1 not in self.sector_list:  
+                    flag_sectortitle = False  
 
-                if int(sec['Sector']) - 1 not in self.sector_list:  #SM change
-                    flag_sectortitle = False  #SM change
-
-                if flag_sectortitle: #SM change
-                    label = str(int(sec['Sector'])) + '\n' #SM change
-                    flag_sectortitle = False  #SM change
-                else:  #SM change
-                    label = str(int(sec['Sector']))  #SM change
-                    flag_sectortitle = True  #SM change
+                if flag_sectortitle: 
+                    label = str(int(sec['Sector'])) + '\n' 
+                    flag_sectortitle = False  
+                else:  
+                    label = str(int(sec['Sector']))  
+                    flag_sectortitle = True  
 
                 x = sec['mid_time']
 
@@ -510,20 +483,16 @@ class FinalLCSelector:
         lc_collection = lk.LightCurveCollection(self.lc_list)
         self.lc_all = lc_collection.stitch(lambda x: x )
 
-        #### Check whether the sectors being stitched were binned to the same cadence.   #SM change
-        #### The cadence is not saved in the txt files, so it is measured from the time  #SM change
-        #### column of each light curve. Only printed once, the first time the sectors   #SM change
-        #### are stitched, so it does not repeat every time a sector is clicked.         #SM change
-        if not self.cadence_warning_shown:  #SM change
-            cadences = []  #SM change
-            for lc_temp in self.lc_list:  #SM change
-                if len(lc_temp.time.value) > 1:  #SM change
-                    cadences.append(int(round(np.median(np.diff(lc_temp.time.value))*(60*60*24))))  #SM change
-            if len(set(cadences)) > 1:  #SM change
-                print(f'Warning: these sectors were binned to different cadences: {sorted(set(cadences))} seconds.')  #SM change
-                print('The light curves can still be stitched, but the noise in the final power spectrum')  #SM change
-                print('will be higher than if all sectors used the same cadence.')  #SM change
-            self.cadence_warning_shown = True  #SM change
+        #### Check whether the sectors being stitched were binned to the same cadence.   
+        #### Only printed once, the first time the sectors are stitched, so it does not repeat every time a sector is clicked.    
+        if not self.cadence_warning_shown: 
+            cadences = [] 
+            for lc_temp in self.lc_list: 
+                if len(lc_temp.time.value) > 1: 
+                    cadences.append(int(round(np.median(np.diff(lc_temp.time.value))*(60*60*24))))  
+            if len(set(cadences)) > 1: 
+                print(f'Warning: these sectors were binned to different cadences: {sorted(set(cadences))} seconds.')  
+            self.cadence_warning_shown = True 
 
         self.lc_all.plot(ax=self.ax_lc, c = 'k');
 
@@ -534,12 +503,10 @@ class FinalLCSelector:
     def update_powerspectra(self):
         self.ax_psd.clear()
 
-        #### Same Nyquist fix as in TPFMaskSelector: 277.78 uHz is only correct for 1800 s.   #SM change
-        #### calc_PSD's 'cadence' argument is in MINUTES (it feeds calc_Tprime), so convert   #SM change
-        #### bin_cadence_sec here. Without it the frequency spacing is too fine (3x at 600 s).#SM change
-        dt_sec = np.median(np.diff(self.lc_all.time.value))*(24*60*60)   # actual sampling in seconds  #SM change
-        nyquist = 0.5*(1/dt_sec)*1e6   # microHz  #SM change
-        self.psd_all = TESS_LC.calc_PSD(self.lc_all, method = 'setfreqres', oversample=5, min_freq=0.01, max_freq = nyquist, cadence = self.bin_cadence_sec/60)  #SM change
+        #### calc_PSD's 'cadence' argument is in MINUTES, so convert bin_cadence_sec here. 
+        dt_sec = np.median(np.diff(self.lc_all.time.value))*(24*60*60)   # actual sampling in seconds  
+        nyquist = 0.5*(1/dt_sec)*1e6   # microHz  
+        self.psd_all = TESS_LC.calc_PSD(self.lc_all, method = 'setfreqres', oversample=5, min_freq=0.01, max_freq = nyquist, cadence = self.bin_cadence_sec/60)  
         pssm = TESS_LC.ps_smooth(self.psd_all.frequency.value, self.psd_all.power.value, self.numax_guess, 'Yu18', 2)
 
 

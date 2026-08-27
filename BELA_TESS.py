@@ -383,7 +383,7 @@ class FinalLCSelector:
         pos2 = self.ax_psd.get_position()
 
         # self.ax_lc.set_position([pos1.x0 + 0.02, pos1.y0+0.05, pos1.width, pos1.height])
-        self.ax_psd.set_position([pos2.x0 + 0.32, pos2.y0-0.07, pos2.width*0.28, pos2.height*1.1])
+        self.ax_psd.set_position([pos2.x0 + 0.29, pos2.y0-0.07, pos2.width*0.28, pos2.height*1.1])
 
         self.fig.suptitle(f'TIC {self.star_id} Full Light Curve', fontweight='semibold')
 
